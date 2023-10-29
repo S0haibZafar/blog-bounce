@@ -4,7 +4,53 @@ const bcrypt = require("bcryptjs");
 
 const passwordExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,25}$/;
 const authController = {
-    async login() { },
+    async login(req, res, next) {
+        const userLoginSchema = Joi.object({
+            username: Joi.string().min(5).max(30).required(),
+            password: Joi.string().pattern(passwordExp).required(),
+        })
+        const { error } = userLoginSchema.validate(req.body);
+
+        if (error) {
+            return next(error)
+        }
+
+        const { username, password } = req.body;
+        let user;
+        try {
+            //match username
+            user = await User.findOne({ username: username })
+            if (!user) {
+                const error = {
+                    stattus: 401,
+                    message: "Invalid username or password"
+                }
+                return next(error);
+            }
+            //match password
+            //password --> hash --> match
+            const matchPassword = await bcrypt.compare(password, user.password);
+
+            if (!matchPassword) {
+                const error = {
+                    stattus: 401,
+                    message: "Invalid password"
+                }
+                return next(error);
+            }
+
+
+
+        }
+        catch (e) {
+            return next(e);
+
+        }
+
+        return res.status(200).json({ user });
+
+
+    },
     async register(req, res, next) {
         //1. validate user input
         const userRegisterSchema = Joi.object({
@@ -75,7 +121,7 @@ const authController = {
         }
 
         //6. return reponse.
-        return res.status(201).json({user: usr})
+        return res.status(201).json({ user: usr })
     }
 }
 
