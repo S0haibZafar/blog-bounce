@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const UserDTO = require("../dto/user");
 
 const passwordExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,25}$/;
 const authController = {
@@ -47,7 +48,9 @@ const authController = {
 
         }
 
-        return res.status(200).json({ user });
+        const userData = new UserDTO(user);
+
+        return res.status(200).json({ user: userData });
 
 
     },
@@ -120,8 +123,10 @@ const authController = {
 
         }
 
+        const userData = new UserDTO(usr);
+
         //6. return reponse.
-        return res.status(201).json({ user: usr })
+        return res.status(201).json({ user: userData })
     }
 }
 
