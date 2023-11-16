@@ -2,6 +2,8 @@ const Joi = require('joi');
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const UserDTO = require("../dto/user");
+const JWTService = require('../services/JWTService')
+const RefreshToken = require('../models/token')
 
 const passwordExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,25}$/;
 const authController = {
@@ -47,6 +49,35 @@ const authController = {
             return next(e);
 
         }
+
+        
+        //token generation
+        const accessToken = JWTService.signAccessToken({_id:user._id}, '30m');
+        const refreshToken = JWTService.signRefreshToken({_id:user._id}, '60m');
+
+        //update refresh token in db
+        try{
+            await RefreshToken.updateOne({
+                _id: user._id
+            },
+            {token: refreshToken},
+            {upsert: true}, //if recorde find then update else create new record.
+            );
+        }
+        catch(e){
+            return next(e)
+        }
+
+        //send token in cookies
+        res.cookie('accessToken', accessToken, {
+            maxAge: 1000 * 60 * 60 * 24,
+            httpOnly: true 
+        })
+
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 1000 * 60 * 60 * 24,
+            httpOnly: true 
+        })
 
         const userData = new UserDTO(user);
 
@@ -107,6 +138,8 @@ const authController = {
 
         //5. store user data in db.
         let usr;
+        let accessToken;
+        let refreshToken;
 
         try {
             const registerUSer = new User({
@@ -117,11 +150,28 @@ const authController = {
             });
             usr = await registerUSer.save();
 
+            //token generation
+            accessToken = JWTService.signAccessToken({_id:usr._id, username: usr.name}, '30m');
+            refreshToken = JWTService.signRefreshToken({_id:usr._id}, '60m');
 
         } catch (e) {
             return next(e);
 
         }
+
+        //store refresh token in db
+        await JWTService.storeRefreshToke(refreshToken, usr._id);
+
+        //send token in cookies
+        res.cookie('accessToken', accessToken, {
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            httpOnly: true // only accessible on server side. client cant access it. vluneraablity of xss will reduced 
+        })
+
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            httpOnly: true // only accessible on server side. client cant access it. vluneraablity of xss will reduced 
+        })
 
         const userData = new UserDTO(usr);
 
