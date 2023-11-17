@@ -81,7 +81,7 @@ const authController = {
 
         const userData = new UserDTO(user);
 
-        return res.status(200).json({ user: userData });
+        return res.status(200).json({ user: userData, auth : true });
 
 
     },
@@ -151,7 +151,7 @@ const authController = {
             usr = await registerUSer.save();
 
             //token generation
-            accessToken = JWTService.signAccessToken({_id:usr._id, username: usr.name}, '30m');
+            accessToken = JWTService.signAccessToken({_id:usr._id}, '30m');
             refreshToken = JWTService.signRefreshToken({_id:usr._id}, '60m');
 
         } catch (e) {
@@ -176,7 +176,7 @@ const authController = {
         const userData = new UserDTO(usr);
 
         //6. return reponse.
-        return res.status(201).json({ user: userData })
+        return res.status(201).json({ user: userData, auth: true })
     }
 }
 
