@@ -177,6 +177,23 @@ const authController = {
 
         //6. return reponse.
         return res.status(201).json({ user: userData, auth: true })
+    },
+    async logout(req, res, next) {
+        //1. delete refresh token from  db
+        const {refreshToken} = req.cookies;
+        try{
+           await RefreshToken.deleteOne({token:refreshToken});
+        }
+        catch(e){
+            return next(e);
+        } 
+        // Delete cookies
+        res.clearCookie('accessToken')
+        res.clearCookie('refreshToken')
+
+        //2. reponse 
+        res.status(200).json({user: null, auth : false })
+
     }
 }
 
