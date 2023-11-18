@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require('../middlewares/auth')
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.post('/register', authController.register);
 //login
 router.post('/login', authController.login);
 //logout
-router.post('/logout', authController.logout);
+router.post('/logout', auth, authController.logout);
 
 //refresh
 

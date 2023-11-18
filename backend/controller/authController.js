@@ -179,6 +179,7 @@ const authController = {
         return res.status(201).json({ user: userData, auth: true })
     },
     async logout(req, res, next) {
+
         //1. delete refresh token from  db
         const {refreshToken} = req.cookies;
         try{
