@@ -15,5 +15,6 @@ app.use(router);
 dbConnect();
 
 // app.get('/', (req, res) => res.json({ msg: "Hello World!"}));
+app.use('/storage', express.static('storage'));
 app.use(errorHandler); // all middleware run sequentilally thats why we use it at end.
 app.listen(PORT, console.log('Backend is running on Port:', PORT));
