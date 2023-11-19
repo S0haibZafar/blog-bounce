@@ -195,6 +195,72 @@ const authController = {
         //2. reponse 
         res.status(200).json({user: null, auth : false })
 
+    },
+    async refresh(req, res, next){
+        //get refresh token from cookies
+        //verify refresh token
+        //generate new token
+        //update refresh token in db, return responsse.   
+        
+        const getRefreshToken = req.cookies.refreshToken;
+
+        let id;
+        try{
+           id = JWTService.verifyRefreshToken(getRefreshToken)._id;
+        }
+        catch(e){
+            const error={
+                status : 401,
+                message: "Unauthorized"
+            }
+            return next(error);
+        }
+
+        try{
+           const match = await RefreshToken.findOne({_id: id, token: getRefreshToken })
+
+           if(!match){
+            const error ={
+                status: 401,
+                message: "Unauthorized"
+            }
+            return next(error);
+           }
+        }
+        catch(e){
+            return next(e);
+        }
+
+        try{
+            //token generation
+           const  accessToken = JWTService.signAccessToken({_id: id } , '30m');
+           const refreshToken = JWTService.signRefreshToken({_id: id}, '60m');
+
+            await RefreshToken.updateOne({_id: id}, { token: refreshToken })
+
+        //send token in cookies
+        res.cookie('accessToken', accessToken, {
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            httpOnly: true // only accessible on server side. client cant access it. vluneraablity of xss will reduced 
+        })
+
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            httpOnly: true // only accessible on server side. client cant access it. vluneraablity of xss will reduced 
+        })
+
+
+        }
+        catch(e){
+            return next(e)
+
+        }
+        
+        const user = await User.findOne({_id: id});
+        const userData = new UserDTO(user);
+
+        return res.status(200).json({ user: userData, auth: true })
+
     }
 }
 
