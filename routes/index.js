@@ -19,6 +19,7 @@ router.post('/login', authController.login);
 router.post('/logout', auth, authController.logout);
 
 //refresh
+router.get('/refresh', authController.refresh);
 
 //blod CURD
 //create
