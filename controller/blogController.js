@@ -58,14 +58,28 @@ const blogController = {
         }
 
         const blogDto = new BlogDTO(newBlog)
-        
 
         return res.status(201).json({blog:blogDto});
 
-
-
     },
-    // async getAll(req, res, next) { },
+    async getAll(req, res, next) { 
+
+        const blogs = [];
+        try{
+            const blogList= await Blog.find({});
+
+            for(let i = 0; i < blogList.length; i++ ){
+                const dto = new  BlogDTO(blogList[i])
+                blogs.push(dto);
+            }
+
+            return res.status(200).json({blog:blogs });
+
+        }
+        catch(e){
+            return next(e);
+        }
+    },
     // async getById(req, res, next) { },
     // async update(req, res, next) { },
     // async delete(req, res, next) { },
