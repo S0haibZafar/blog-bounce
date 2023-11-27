@@ -29,7 +29,7 @@ router.post('/blog', auth, blogController.create);
 //read all blogs
 router.get('/blog/all', auth, blogController.getAll);
 // blog detail by id
-// router.get('/blog/:id', auth, blogController.getById);
+router.get('/blog/:id', auth, blogController.getById);
 //update
 // router.put('/blog', auth, blogController.update);
 //delete
