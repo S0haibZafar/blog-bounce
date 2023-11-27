@@ -3,6 +3,7 @@ const fs = require("fs");
 const Blog = require('../models/blog');
 const {BACKEND_SERVER_PATH} = require('../config/index');
 const BlogDTO = require("../dto/blog")
+const BlogDetailsDTO = require("../dto/blogDetails")
 
 const mongodbIdPattran = /^[0-9a-fA-F]{24}$/;
 
@@ -96,13 +97,13 @@ const blogController = {
         
         let blog;
         try{
-            blog= await Blog.findOne({_id: blogId});
+            blog= await Blog.findOne({_id: blogId}).populate('author');
         }
         catch(e){
             return next(e)
         }
 
-        const blogdto = new BlogDTO(blog);
+         const blogdto = new BlogDetailsDTO(blog);
 
         return res.status(200).json({blog: blogdto})
 
