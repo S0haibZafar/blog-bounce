@@ -31,7 +31,7 @@ router.get('/blog/all', auth, blogController.getAll);
 // blog detail by id
 router.get('/blog/:id', auth, blogController.getById);
 //update
-// router.put('/blog', auth, blogController.update);
+router.put('/blog', auth, blogController.update);
 //delete
 // router.delete('/blog/:id', auth, blogController.delete);
 
