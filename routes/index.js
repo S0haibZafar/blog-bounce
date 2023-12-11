@@ -33,7 +33,7 @@ router.get('/blog/:id', auth, blogController.getById);
 //update
 router.put('/blog', auth, blogController.update);
 //delete
-// router.delete('/blog/:id', auth, blogController.delete);
+router.delete('/blog/:id', auth, blogController.delete);
 
 
 //comment
