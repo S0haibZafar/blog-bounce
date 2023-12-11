@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const fs = require("fs");
 const Blog = require('../models/blog');
-const {BACKEND_SERVER_PATH} = require('../config/index');
+const { BACKEND_SERVER_PATH } = require('../config/index');
 const BlogDTO = require("../dto/blog")
 const BlogDetailsDTO = require("../dto/blogDetails")
 
@@ -22,7 +22,7 @@ const blogController = {
             photo: Joi.string().required(),
         })
 
-        const {error} = createBlogSchema.validate(req.body)
+        const { error } = createBlogSchema.validate(req.body)
 
         if (error) {
             return next(error);
@@ -45,7 +45,7 @@ const blogController = {
         //save blog in db
         let newBlog
         try {
-             newBlog = new Blog({
+            newBlog = new Blog({
                 title,
                 author,
                 content,
@@ -60,59 +60,59 @@ const blogController = {
 
         const blogDto = new BlogDTO(newBlog)
 
-        return res.status(201).json({blog:blogDto});
+        return res.status(201).json({ blog: blogDto });
 
     },
-    async getAll(req, res, next) { 
+    async getAll(req, res, next) {
 
         const blogs = [];
-        try{
-            const blogList= await Blog.find({});
+        try {
+            const blogList = await Blog.find({});
 
-            for(let i = 0; i < blogList.length; i++ ){
-                const dto = new  BlogDTO(blogList[i])
+            for (let i = 0; i < blogList.length; i++) {
+                const dto = new BlogDTO(blogList[i])
                 blogs.push(dto);
             }
 
-            return res.status(200).json({blog:blogs });
+            return res.status(200).json({ blog: blogs });
 
         }
-        catch(e){
+        catch (e) {
             return next(e);
         }
     },
-    async getById(req, res, next) { 
+    async getById(req, res, next) {
 
         const getBlogByIdSchema = Joi.object({
-            id : Joi.string().regex(mongodbIdPattran).required()
+            id: Joi.string().regex(mongodbIdPattran).required()
         })
 
-        const {error} = getBlogByIdSchema.validate(req.params);
+        const { error } = getBlogByIdSchema.validate(req.params);
 
-        if(error){
+        if (error) {
             return next(error)
         }
 
         const blogId = req.params.id;
-        
+
         let blog;
-        try{
-            blog= await Blog.findOne({_id: blogId}).populate('author');
+        try {
+            blog = await Blog.findOne({ _id: blogId }).populate('author');
         }
-        catch(e){
+        catch (e) {
             return next(e)
         }
 
-         const blogdto = new BlogDetailsDTO(blog);
+        const blogdto = new BlogDetailsDTO(blog);
 
-        return res.status(200).json({blog: blogdto})
+        return res.status(200).json({ blog: blogdto })
 
 
     },
-    async update(req, res, next) { 
+    async update(req, res, next) {
         // validate 
         //if we update whole info then we need to delete previous photo and update. otherwise we do't delete photo
-        
+
         const updateBlogSchema = Joi.object({
             title: Joi.string().required(),
             content: Joi.string().required(),
@@ -121,7 +121,7 @@ const blogController = {
             photo: Joi.string(),
         })
 
-        const {error} = updateBlogSchema.validate(req.body)
+        const { error } = updateBlogSchema.validate(req.body)
 
         // if (error) {
         //     return next(error);
@@ -133,22 +133,22 @@ const blogController = {
         //other wise save news photo
         let blog;
 
-        try{
-            blog = await Blog.findOne({_id: blogId})
+        try {
+            blog = await Blog.findOne({ _id: blogId })
         }
-        catch(e){
+        catch (e) {
             return next(e)
         }
 
-        if(photo){
-            let previousPhoto =  blog.photoPath;
+        if (photo) {
+            let previousPhoto = blog.photoPath;
 
             previousPhoto = previousPhoto.split('/').at(-1);
             //delete photo
             fs.unlinkSync(`storage/${previousPhoto}`)
 
             //Now we save new photo
-             //read as buffer
+            //read as buffer
             const buffer = Buffer.from(photo.replace(/^data:image\/(png|jpg|jpeg);base64,/, ''), 'base64')
             //randing
             const imagePath = `${Date.now()}-${author}.png`;
@@ -158,20 +158,44 @@ const blogController = {
             }
             catch (e) {
                 return next(e);
-            }   
+            }
 
-            await Blog.updateOne({_id: blogId},{
+            await Blog.updateOne({ _id: blogId }, {
                 title, content, photoPath: `${BACKEND_SERVER_PATH}/storage/${imagePath}`
             })
 
-        }else{
+        } else {
             //if we do't need to update photo only need to update content 
-            await Blog.updateOne({_id: blogId}, {title, content});
+            await Blog.updateOne({ _id: blogId }, { title, content });
         }
-        return res.status(200).json({message : "blog updated!"});
+        return res.status(200).json({ message: "blog updated!" });
 
     },
-    // async delete(req, res, next) { },
+    async delete(req, res, next) {
+
+
+        const deleteBlogSchema = Joi.object({
+            id: Joi.string().regex(mongodbIdPattran).required()
+        });
+
+        const { error } = deleteBlogSchema.validate(req.params)
+
+        const { id } = req.params;
+
+        try {
+            await Blog.deleteOne({ _id: id });
+
+            // await Comment.deleteMany({ blog: id });
+
+        }
+        catch (error) {
+            return next(error)
+        }
+
+        return res.status(200).json({ message: "blog Deleted!" })
+
+
+    },
 
 }
 
