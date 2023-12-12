@@ -3,12 +3,13 @@ const auth = require('../middlewares/auth')
 
 const router = express.Router();
 
-const authController  = require('../controller/authController')
+const authController = require('../controller/authController')
 
-const blogController  = require('../controller/blogController')
+const blogController = require('../controller/blogController')
 
+const commentController = require('../controller/commentController')
 
-router.get('/test', (req, res) => res.json({ msg: "Working !"}));
+router.get('/test', (req, res) => res.json({ msg: "Working !" }));
 
 //user
 
@@ -38,6 +39,8 @@ router.delete('/blog/:id', auth, blogController.delete);
 
 //comment
 // create comment
-//read.
+router.post('/comment', auth, commentController.create);
+//get
+router.get('/comment/:id', auth, commentController.getById);
 
 module.exports = router;
